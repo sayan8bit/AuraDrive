@@ -95,7 +95,7 @@
                     </div>
 
                     <!-- Breadcrumbs & Operations Toolbar -->
-                    <div class="drive-toolbar card">
+                    <div id="drive-toolbar-regular" class="drive-toolbar card">
                         <div class="breadcrumbs-container" id="breadcrumbs-container">
                             <div class="breadcrumb-item" onclick="navigateToPath('/')">
                                 <i data-lucide="home"></i>
@@ -106,10 +106,25 @@
                             <button class="btn-circle btn-secondary" onclick="showCreateFolderModal()" title="New Folder">
                                 <i data-lucide="folder-plus"></i>
                             </button>
-                            <label class="btn-circle btn-primary upload-label" title="Upload File">
+                            <label class="btn-circle btn-primary upload-label" title="Upload File" for="drive-file-upload">
                                 <i data-lucide="upload"></i>
-                                <input type="file" id="drive-file-upload" onchange="handleFileUpload(event)" style="display: none;">
                             </label>
+                            <input type="file" id="drive-file-upload" onchange="handleFileUpload(event)" style="display: none;" multiple>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions Toolbar (shown when items are selected) -->
+                    <div id="bulk-actions-toolbar" class="drive-toolbar card hidden">
+                        <div class="selection-count">
+                            <span id="selected-count-text" style="font-size: 0.85rem; font-weight: 600; color: var(--accent);">0 items selected</span>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                                Cancel
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteSelectedItems()">
+                                <i data-lucide="trash-2"></i><span>Delete Selected</span>
+                            </button>
                         </div>
                     </div>
 
@@ -205,7 +220,18 @@
                             <h3>Hosted Data Blobs</h3>
                             <span class="file-count-badge" id="server-file-count">0 files</span>
                         </div>
-                        <div id="server-explorer-list" class="server-explorer-list">
+                        
+                        <!-- Server Breadcrumbs -->
+                        <div class="drive-toolbar" style="margin-top: 1rem; border: none; padding: 0.5rem 0.75rem; background: var(--card-bg-light); border-radius: var(--radius-sm); margin-bottom: 1rem;">
+                            <div class="breadcrumbs-container">
+                                <div class="breadcrumb-item" onclick="navigateToServerPath('/')" style="cursor: pointer;">
+                                    <i data-lucide="home" style="width: 14px; height: 14px;"></i>
+                                </div>
+                                <div id="server-breadcrumbs" class="breadcrumbs-list"></div>
+                            </div>
+                        </div>
+
+                        <div id="server-explorer-list" class="explorer-grid">
                             <div class="empty-state">
                                 <i data-lucide="hard-drive"></i>
                                 <p>No files uploaded yet.</p>
@@ -231,6 +257,9 @@
                 <div class="input-group">
                     <input type="password" id="server-password" placeholder="Access Password" required>
                 </div>
+                <div class="input-group">
+                    <input type="number" id="server-max-connections" placeholder="Max Connection Limit (e.g. 5)" min="1" required>
+                </div>
                 <div class="modal-actions mt-4">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="closeCredentialsModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary btn-sm">Save & Initialize</button>
@@ -250,6 +279,35 @@
                 <button class="btn btn-secondary btn-sm" onclick="closeFolderModal()">Cancel</button>
                 <button class="btn btn-primary btn-sm" onclick="submitCreateFolder()">Create</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Professional Fullscreen Lightbox Gallery Modal -->
+    <div id="preview-modal" class="modal-overlay hidden" style="z-index: 2000; background: #000; padding: 0; margin: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column;">
+        <!-- Header overlaid on top of preview (semi-transparent blur bar) -->
+        <div class="preview-header" style="position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 0.85rem 1.5rem; z-index: 1001; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <h3 id="preview-title" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; font-size: 0.95rem; color: #fff; font-weight: 500; font-family: inherit;">File Preview</h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button id="preview-download-btn" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: var(--radius-sm);">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download
+                </button>
+                <button class="btn-icon preview-close-btn" onclick="closePreviewModal()">&times;</button>
+            </div>
+        </div>
+        
+        <!-- Interactive Preview Body (Full Screen size, no paddings/margins) -->
+        <div id="preview-body" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; margin: 0; padding: 0; overflow: hidden;">
+            <!-- Floating Nav Buttons -->
+            <button id="preview-prev-btn" class="preview-nav-btn prev" onclick="navigatePreview(-1)" title="Previous File">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <button id="preview-next-btn" class="preview-nav-btn next" onclick="navigatePreview(1)" title="Next File">
+                <i data-lucide="chevron-right"></i>
+            </button>
+            
+            <!-- Dynamically populated loading, image or video -->
+            <div id="preview-loader" class="spinner" style="position: absolute; z-index: 1002;"></div>
+            <div id="preview-content-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; overflow: hidden;"></div>
         </div>
     </div>
 
