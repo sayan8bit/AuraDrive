@@ -1,6 +1,6 @@
 const CACHE_NAME = 'auradrive-cache-v1';
 const ASSETS = [
-    '/',
+    // '/',
     '/index.html',
     '/styles.css',
     '/app.js',
