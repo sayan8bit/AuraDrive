@@ -1118,3 +1118,130 @@ input:checked + .slider:before {
         gap: 0.4rem;
     }
 }
+
+/* Card selection styling */
+.explorer-card {
+    position: relative; /* Ensure cards can host absolute checkboxes */
+}
+
+/* Custom checkbox styling for explorer cards */
+.card-checkbox-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.card-checkbox-container input {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+}
+
+/* Checkbox visibility triggers */
+.explorer-card:hover .card-checkbox-container,
+.explorer-card.selected .card-checkbox-container,
+.selection-active .card-checkbox-container {
+    opacity: 1;
+}
+
+/* Card highlight states */
+.explorer-card.selected {
+    border-color: var(--accent) !important;
+    background: rgba(99, 102, 241, 0.05) !important;
+}
+
+.selection-count {
+    display: flex;
+    align-items: center;
+}
+
+/* Lightbox preview media classes */
+.preview-media-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 0;
+    box-shadow: none;
+    display: block;
+}
+
+.preview-media-video {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    outline: none;
+    border-radius: 0;
+    box-shadow: none;
+    display: block;
+}
+
+.preview-close-btn {
+    font-size: 1.75rem;
+    line-height: 1;
+    color: #ffffff;
+    padding: 0.2rem;
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+}
+
+.preview-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* Floating Glassmorphic Nav Buttons */
+.preview-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1010;
+    backdrop-filter: blur(12px);
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.preview-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.preview-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.preview-nav-btn.prev {
+    left: 20px;
+}
+
+.preview-nav-btn.next {
+    right: 20px;
+}
+
+.preview-nav-btn.hidden {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .preview-nav-btn {
+        display: none !important; /* Hide chevrons on mobile since they swipe */
+    }
+}
