@@ -2,7 +2,7 @@
   "name": "AuraDrive P2P Cloud",
   "short_name": "AuraDrive",
   "description": "Progressive Web App for P2P file sharing and storage node hosting.",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
