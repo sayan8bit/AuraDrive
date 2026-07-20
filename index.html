@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AuraDrive - Clean P2P Cloud</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Minimal Header -->
+        <header class="app-header">
+            <div class="brand">
+                <i data-lucide="cloud-lightning" class="brand-icon"></i>
+                <h1>AuraDrive</h1>
+            </div>
+            <div class="tab-control">
+                <button id="tab-client-btn" class="tab-btn active" onclick="switchTab('client')">
+                    <i data-lucide="hard-drive"></i><span>Cloud Drive</span>
+                </button>
+                <button id="tab-server-btn" class="tab-btn" onclick="switchTab('server')">
+                    <i data-lucide="server"></i><span>Server Node</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-body">
+            
+            <!-- CLIENT (DRIVE SENDER) -->
+            <section id="client-section" class="tab-section active">
+                
+                <!-- Connection credentials login card -->
+                <div id="client-auth-view" class="card auth-card animate-fade-in">
+                    <h2>Connect to Storage</h2>
+                    <p class="subtitle">Access your remote drive node directly peer-to-peer.</p>
+                    
+                    <form id="client-connect-form" onsubmit="handleClientConnect(event)">
+                        <div class="input-group">
+                            <input type="text" id="connect-username" placeholder="Server Username" value="cloud-node" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="connect-password" placeholder="Access Password" value="aura-secure-123" required>
+                        </div>
+                        <div class="checkbox-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="connect-remember" checked>
+                                <span class="checkmark"></span>
+                                Save credentials
+                            </label>
+                        </div>
+                        <button type="submit" id="connect-submit-btn" class="btn btn-primary">
+                            <span>Connect to Node</span>
+                        </button>
+                    </form>
+                    
+                    <div id="client-connection-status" class="connection-status hidden">
+                        <div class="spinner"></div>
+                        <span id="client-status-text">Connecting...</span>
+                    </div>
+                </div>
+
+                <!-- Active Cloud Explorer -->
+                <div id="client-drive-view" class="drive-container hidden animate-fade-in" style="position: relative;">
+                    <!-- Drag & Drop Upload Zone Overlay -->
+                    <div id="drop-zone" class="drop-zone hidden">
+                        <div class="drop-zone-content">
+                            <i data-lucide="upload-cloud" class="drop-icon"></i>
+                            <p>Drop file here to upload</p>
+                        </div>
+                    </div>
+
+                    <!-- Top Drive Status Bar -->
+                    <div class="drive-status-bar card">
+                        <div class="status-left">
+                            <span class="status-badge">
+                                <span class="pulse-dot"></span>
+                                <span id="connected-server-name">cloud-node</span>
+                            </span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm btn-logout" onclick="handleClientDisconnect()">
+                            <i data-lucide="log-out"></i><span>Disconnect</span>
+                        </button>
+                    </div>
+
+                    <!-- Breadcrumbs & Operations Toolbar -->
+                    <div class="drive-toolbar card">
+                        <div class="breadcrumbs-container" id="breadcrumbs-container">
+                            <div class="breadcrumb-item" onclick="navigateToPath('/')">
+                                <i data-lucide="home"></i>
+                            </div>
+                            <div id="breadcrumbs" class="breadcrumbs-list"></div>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button class="btn-circle btn-secondary" onclick="showCreateFolderModal()" title="New Folder">
+                                <i data-lucide="folder-plus"></i>
+                            </button>
+                            <label class="btn-circle btn-primary upload-label" title="Upload File">
+                                <i data-lucide="upload"></i>
+                                <input type="file" id="drive-file-upload" onchange="handleFileUpload(event)" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Transfer progress notification -->
+                    <div id="upload-progress-panel" class="card progress-panel hidden">
+                        <div class="progress-details">
+                            <i data-lucide="refresh-cw" class="progress-spinner"></i>
+                            <div class="progress-texts">
+                                <span id="progress-filename" class="progress-filename">filename.ext</span>
+                                <span id="progress-meta" class="progress-meta">0% • 0 KB/s</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+                        </div>
+                        <button class="btn-icon-close" onclick="cancelUpload()">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+
+                    <!-- Grid Files layout -->
+                    <div id="explorer-view" class="explorer-grid">
+                        <!-- Dynamic folder and files content -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- SERVER (DRIVE RECEIVER) -->
+            <section id="server-section" class="tab-section">
+                
+                <div class="server-layout animate-fade-in">
+                    
+                    <!-- Active Server Panel -->
+                    <div id="server-active-panel" class="card server-control-card">
+                        <div class="node-header">
+                            <div class="node-identity">
+                                <span id="active-server-username">cloud-node</span>
+                                <div id="active-server-peerid-container">
+                                    <span class="node-id" id="active-server-peerid" onclick="copyServerPeerId()">p2p-cloud-drive-...</span>
+                                </div>
+                            </div>
+                            <div id="server-status-badge" class="badge badge-offline">
+                                <span class="badge-dot"></span>
+                                <span class="badge-text">Offline</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Main Power Row -->
+                        <div class="power-row">
+                            <div class="power-info">
+                                <h3>Node Status</h3>
+                                <p id="server-power-status-lbl">Turn server ON to allow client connections.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="server-power-switch" onchange="toggleServer(this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Server stats summary -->
+                        <div class="server-stats">
+                            <div class="stat-item">
+                                <span class="stat-lbl">Active Sessions</span>
+                                <span class="stat-val" id="client-count">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-lbl">Total Capacity</span>
+                                <span class="stat-val" id="storage-size-val">0 B</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Minimal Actions -->
+                        <div class="node-actions">
+                            <button class="btn btn-outline btn-sm" onclick="editServerCredentials()">
+                                <i data-lucide="settings"></i> Change Node Credentials
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="clearServerDatabase()">
+                                <i data-lucide="trash-2"></i> Wipe Storage
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hosted files registry card -->
+                    <div class="card hosted-files-card">
+                        <div class="card-header-simple">
+                            <h3>Hosted Data Blobs</h3>
+                            <span class="file-count-badge" id="server-file-count">0 files</span>
+                        </div>
+                        <div id="server-explorer-list" class="server-explorer-list">
+                            <div class="empty-state">
+                                <i data-lucide="hard-drive"></i>
+                                <p>No files uploaded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Server Credentials Setup -->
+    <div id="credentials-modal" class="modal-overlay hidden">
+        <div class="modal card animate-scale-in">
+            <h3>Configure Server Node</h3>
+            <p class="subtitle">Set credentials to authorize remote client connections.</p>
+            <form id="server-setup-form" onsubmit="handleServerCredentialsSetup(event)">
+                <div class="input-group mt-3">
+                    <input type="text" id="server-username" placeholder="Define Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="server-password" placeholder="Access Password" required>
+                </div>
+                <div class="modal-actions mt-4">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeCredentialsModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save & Initialize</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Folder Creation -->
+    <div id="folder-modal" class="modal-overlay hidden">
+        <div class="modal card animate-scale-in">
+            <h3>New Folder</h3>
+            <div class="input-group mt-3">
+                <input type="text" id="new-folder-name" placeholder="Folder Name" required>
+            </div>
+            <div class="modal-actions mt-4">
+                <button class="btn btn-secondary btn-sm" onclick="closeFolderModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="submitCreateFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Notification Toast -->
+    <div id="toast-notification" class="toast hidden">
+        <span id="toast-msg">Notification Message</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
